@@ -25,7 +25,12 @@ class TranslatableTest extends TestCase
     {
         $translator = new Translator('en');
         $translator->addLoader('array', new ArrayLoader());
-        $translator->addResource('array', [$translatable->getMessage() => $translation], $locale, $translatable->getDomain());
+
+        if (!is_array($translation)) {
+            $translation = [$translatable->getMessage() => $translation];
+        }
+
+        $translator->addResource('array', $translation, $locale, $translatable->getDomain());
 
         $this->assertSame($expected, $translatable->trans($translator, $locale));
     }
@@ -52,6 +57,10 @@ class TranslatableTest extends TestCase
         return [
             ['Symfony est super !', new TranslatableMessage('Symfony is great!', [], ''), 'Symfony est super !', 'fr'],
             ['Symfony est awesome !', new TranslatableMessage('Symfony is %what%!', ['%what%' => 'awesome'], ''), 'Symfony est %what% !', 'fr'],
+            ['Symfony est superbe !', new TranslatableMessage('Symfony is %what%!', ['%what%' => new TranslatableMessage('awesome', [], '')], ''), [
+                'Symfony is %what%!' => 'Symfony est %what% !',
+                'awesome' => 'superbe',
+            ], 'fr'],
         ];
     }
 
